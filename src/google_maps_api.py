@@ -1,9 +1,7 @@
-import logging.config
 import logging
 from src import settings
 import requests
 
-logging.config.fileConfig('logging.conf')
 logger = logging.getLogger(__name__)
 
 

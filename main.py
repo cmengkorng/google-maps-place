@@ -1,15 +1,33 @@
 
-from src import util
+from src import utils
 import pandas as pd
 from src import settings
 import argparse
 import os
-
-import logging.config
 import logging
+from logging.handlers import RotatingFileHandler
 
-logging.config.fileConfig('logging.conf')
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)  # Capture all logs
+
+# Create rotating file handler (5MB per file, keeps 3 backups)
+file_handler = RotatingFileHandler(os.path.join("logs/app.log"), maxBytes=5 * 1024 * 1024, backupCount=3, encoding='utf-8')
+file_handler.setLevel(logging.DEBUG)
+
+# Create console handler (stream handler)
+stream_handler = logging.StreamHandler()
+stream_handler.setLevel(logging.DEBUG)  # Show all logs in console
+
+# Define the log format
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
+
+# Apply formatter to both handlers
+file_handler.setFormatter(formatter)
+stream_handler.setFormatter(formatter)
+
+# Add both handlers to the logger
+logger.addHandler(file_handler)
+logger.addHandler(stream_handler)
 
 
 def main(search_keywords:list, scan_file:str, outlet_check, outlet_file):
@@ -31,17 +49,17 @@ def main(search_keywords:list, scan_file:str, outlet_check, outlet_file):
             'high': (areas.loc[i, 'high_lat'], areas.loc[i, 'high_long']),
             'low': (areas.loc[i, 'low_lat'], areas.loc[i, 'low_long'])}
         logger.info(bounary)
-        places = util.fetch_location(search_list=search_keywords, area=areas.loc[i, 'area'], bounary=bounary)
+        places = utils.fetch_location(search_list=search_keywords, area=areas.loc[i, 'area'], bounary=bounary)
         all_places.extend(places)
     pd.DataFrame(all_places).to_csv(output_raw, index=False)
     logger.info(f'saved file: {output_raw}')
     logger.info(f'clean: {output_raw}')
-    df = util.clean_data(output_raw)
+    df = utils.clean_data(output_raw)
 
     if outlet_check:
         outlets = pd.read_excel(outlet_file)
         logger.info('outlet check enable')
-        df_reverse_geo = util.nearest_point_v2(
+        df_reverse_geo = utils.nearest_point_v2(
                 df_points=df,
                 df_location=outlets,
                 location_col="Outlet Code",
