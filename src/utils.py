@@ -8,7 +8,6 @@ import numpy as np
 import logging
 
 logger = logging.getLogger(__name__)
-logger.propagate = True
 
 def split_rectangle(high, low, split_type='vertical'):
     """
@@ -135,8 +134,3 @@ def nearest_point_v2(df_points:pd.DataFrame,
     df_points[output_col[0]] = df_location.iloc[indices][location_col].values
     df_points[output_col[1]] = distances * 6371 *1000
     return df_points
-
-
-def say_hello(words:list):
-    for word in words:
-        logger.info(word)

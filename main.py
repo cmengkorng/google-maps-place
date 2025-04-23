@@ -7,27 +7,26 @@ import os
 import logging
 from logging.handlers import RotatingFileHandler
 
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)  # Capture all logs
+# Set up root logger for the application
+logger = logging.getLogger(__name__)
+logger.propagate = False
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(filename)s - %(levelname)s - %(message)s"
+)
 
-# Create rotating file handler (5MB per file, keeps 3 backups)
-file_handler = RotatingFileHandler(os.path.join("logs/app.log"), maxBytes=5 * 1024 * 1024, backupCount=3, encoding='utf-8')
-file_handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter("%(asctime)s - %(filename)s - %(levelname)s - %(message)s")
 
-# Create console handler (stream handler)
+# Set up StreamHandler (for logging to console)
 stream_handler = logging.StreamHandler()
-stream_handler.setLevel(logging.DEBUG)  # Show all logs in console
+file_handler = RotatingFileHandler("logs/app.log", maxBytes=1024 * 1024, backupCount=3, encoding='utf-8')
 
-# Define the log format
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
-
-# Apply formatter to both handlers
-file_handler.setFormatter(formatter)
 stream_handler.setFormatter(formatter)
+file_handler.setFormatter(formatter)
 
-# Add both handlers to the logger
-logger.addHandler(file_handler)
+# Add the StreamHandler to the root logger
 logger.addHandler(stream_handler)
+logger.addHandler(file_handler)
 
 
 def main(search_keywords:list, scan_file:str, outlet_check, outlet_file):
@@ -46,8 +45,8 @@ def main(search_keywords:list, scan_file:str, outlet_check, outlet_file):
     logger.info('fetch location from google maps')
     for i in areas.index:
         bounary = {
-            'high': (areas.loc[i, 'high_lat'], areas.loc[i, 'high_long']),
-            'low': (areas.loc[i, 'low_lat'], areas.loc[i, 'low_long'])}
+            'high': (float(areas.loc[i, 'high_lat']), float(areas.loc[i, 'high_long'])),
+            'low': (float(areas.loc[i, 'low_lat']), float(areas.loc[i, 'low_long']))}
         logger.info(bounary)
         places = utils.fetch_location(search_list=search_keywords, area=areas.loc[i, 'area'], bounary=bounary)
         all_places.extend(places)
